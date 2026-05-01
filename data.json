@@ -1,0 +1,37 @@
+{
+    "transactions": [
+        {
+            "id": "1",
+            "type": "expense",
+            "amount": "1200",
+            "category": "Food",
+            "description": "Groceries",
+            "date": "2026-04-28"
+        },
+        {
+            "id": "2",
+            "type": "income",
+            "amount": "5000",
+            "category": "Salary",
+            "description": "Monthly Salary",
+            "date": "2026-04-01"
+        }
+    ],
+    "budgets": {
+        "Food": 2000,
+        "Travel": 1000
+    },
+    "goals": [
+        {
+            "id": "g1",
+            "name": "New Laptop",
+            "targetAmount": 100000,
+            "currentAmount": 20000,
+            "deadline": "2026-12-31"
+        }
+    ],
+    "profile": {
+        "name": "Krish",
+        "currency": "₹"
+    }
+}

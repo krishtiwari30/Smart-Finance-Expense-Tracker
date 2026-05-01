@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics & Insights{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="ph ph-chart-pie-slice text-accent"></i> Spending by Category (This Month)
+    </h3>
+    
+    {% if metrics.categoryTotals %}
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+        {% for cat, amount in metrics.categoryTotals.items() %}
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 1.5rem; border-radius: 12px; flex: 1; min-width: 200px;">
+            <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">{{ cat }}</div>
+            <div style="font-size: 2rem; font-weight: 600;">{{ data.profile.currency }}{{ amount | inr_format }}</div>
+            
+            {% set pct = (amount / metrics.thisMonthExpense * 100) | round %}
+            <div style="margin-top: 1rem; width: 100%; background: var(--bg-surface); height: 6px; border-radius: 3px; overflow: hidden;">
+                <div style="height: 100%; width: {{ pct }}%; background: var(--accent); border-radius: 3px;"></div>
+            </div>
+            <div style="text-align: right; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">{{ pct }}% of total</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-secondary);">No expenses recorded this month.</p>
+    {% endif %}
+</div>
+
+<div class="grid-2">
+    <div class="glass-panel">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-trend-up text-accent"></i> Cash Flow
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div>
+                <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Income</div>
+                <div style="font-size: 2rem; font-weight: 600; color: var(--success);">{{ data.profile.currency }}{{ metrics.totalIncome | inr_format }}</div>
+            </div>
+            <div>
+                <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Total Expense</div>
+                <div style="font-size: 2rem; font-weight: 600; color: var(--danger);">{{ data.profile.currency }}{{ metrics.totalExpense | inr_format }}</div>
+            </div>
+            <div style="padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Net Savings</div>
+                <div style="font-size: 2.5rem; font-weight: 700; color: {% if metrics.savings > 0 %}var(--success){% else %}var(--danger){% endif %};">{{ data.profile.currency }}{{ metrics.savings | inr_format }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-panel">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-calendar text-accent"></i> Activity Streaks
+        </h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Days with recorded expenses:</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            {% for date in metrics.expenseDates[:14] %}
+            <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem;">
+                {{ date }}
+            </div>
+            {% else %}
+            <p style="color: var(--text-secondary);">No activity recorded.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="grid-3" style="margin-top: 1.5rem;">
+    <!-- Subscription Tracker -->
+    <div class="glass-panel" style="display: flex; flex-direction: column;">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-arrows-clockwise text-accent"></i> Detected Subscriptions
+        </h3>
+        <div style="flex: 1;">
+            {% if subs.list %}
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for sub in subs.list %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
+                    <div>
+                        <div style="font-weight: 500;">{{ sub.name }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Last paid: {{ sub.last_paid }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; font-family: 'Roboto Mono', monospace;">{{ data.profile.currency }}{{ sub.amount | inr_format }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ sub.frequency }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; color: var(--text-secondary); margin-top: 1rem;">
+                <p>No recurring subscriptions detected.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <div style="color: var(--text-secondary);">Estimated Monthly Cost:</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">{{ data.profile.currency }}{{ subs.total_cost | inr_format }}</div>
+        </div>
+    </div>
+
+    <!-- Personality Analysis -->
+    <div class="glass-panel" style="position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -20px; top: -20px; font-size: 150px; opacity: 0.05; color: {{ personality.color }};">
+            <i class="ph-fill {{ personality.icon }}"></i>
+        </div>
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-brain text-accent"></i> Financial Personality
+        </h3>
+        <div style="font-size: 2rem; font-weight: 700; color: {{ personality.color }}; margin-bottom: 1rem;">
+            {{ personality.type }}
+        </div>
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+            {{ personality.description }}
+        </p>
+    </div>
+
+    <!-- Future Projections -->
+    <div class="glass-panel">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-crystal-ball text-accent"></i> Future Projections
+        </h3>
+        <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">Predicted Monthly Spend</div>
+        <div style="font-size: 2.5rem; font-weight: 700; color: var(--warning); display: flex; align-items: baseline; gap: 0.5rem;">
+            {{ data.profile.currency }}{{ prediction | inr_format }}
+            <span style="font-size: 1rem; color: var(--text-secondary); font-weight: 400;">/ mo</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">
+            Based on your moving average and past transactions, this is what you're on track to spend each month.
+        </p>
+    </div>
+</div>
+{% endblock %}

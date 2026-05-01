@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Transactions{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <!-- Manual Add & Smart Import -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Smart Import -->
+        <div class="glass-panel">
+            <h3 style="margin-bottom: 1rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="ph ph-file-pdf text-accent"></i> Smart Import (PDF/CSV)
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Upload a bank statement to automatically extract and categorize transactions.
+            </p>
+            <form method="POST" action="{{ url_for('upload_statement') }}" enctype="multipart/form-data" style="display: flex; gap: 0.5rem;">
+                <input type="file" name="file" class="form-control" accept=".pdf,.csv" required style="padding: 0.5rem;">
+                <button type="submit" class="btn"><i class="ph ph-upload-simple"></i> Upload</button>
+            </form>
+        </div>
+
+        <!-- Manual Add -->
+        <div class="glass-panel">
+            <h3 style="margin-bottom: 1.5rem; font-weight: 500;">Add Transaction Manually</h3>
+        <form method="POST" action="{{ url_for('transactions') }}">
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-control" required style="background-color: var(--bg-surface);">
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount ({{ data.profile.currency }})</label>
+                    <input type="number" name="amount" class="form-control" required step="0.01" placeholder="0.00">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Category (Leave blank for AI auto-categorization)</label>
+                <input type="text" name="category" class="form-control" placeholder="e.g. Food, Salary, Travel" list="categories">
+                <datalist id="categories">
+                    <option value="Food">
+                    <option value="Travel">
+                    <option value="Shopping">
+                    <option value="Salary">
+                    <option value="Bills">
+                </datalist>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <input type="text" name="description" class="form-control" required placeholder="What was this for?">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" required id="dateInput">
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                <i class="ph ph-plus-circle"></i> Add Record
+            </button>
+        </form>
+        </div>
+    </div>
+
+    <div class="glass-panel" style="display: flex; flex-direction: column;">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500;">Transaction History</h3>
+        
+        <div style="flex: 1; overflow-y: auto; max-height: 500px; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            {% for t in data.transactions %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: {% if t.type == 'income' %}rgba(16, 185, 129, 0.1){% else %}rgba(239, 68, 68, 0.1){% endif %}; display: flex; align-items: center; justify-content: center; color: {% if t.type == 'income' %}var(--success){% else %}var(--danger){% endif %};">
+                        <i class="ph {% if t.type == 'income' %}ph-arrow-down-left{% else %}ph-arrow-up-right{% endif %}"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 500;">{{ t.description }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ t.category }} • {{ t.date }}</div>
+                    </div>
+                </div>
+                <div style="font-weight: 600; font-family: 'Roboto Mono', monospace; color: {% if t.type == 'income' %}var(--success){% else %}white{% endif %};">
+                    {% if t.type == 'income' %}+{% else %}-{% endif %}{{ data.profile.currency }}{{ t.amount | inr_format }}
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">
+                <i class="ph ph-receipt" style="font-size: 3rem; opacity: 0.5; margin-bottom: 1rem;"></i>
+                <p>No transactions found.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set default date to today
+    document.getElementById('dateInput').valueAsDate = new Date();
+</script>
+{% endblock %}

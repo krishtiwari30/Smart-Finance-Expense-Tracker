@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFi Premium</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Phosphor Icons (Sleek, modern icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar closed" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <i class="ph-fill ph-chart-polar"></i>
+                    SmartFi
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('dashboard') }}" class="nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
+                    <i class="ph ph-squares-four"></i> Dashboard
+                </a>
+                <a href="{{ url_for('transactions') }}" class="nav-item {% if active_tab == 'transactions' %}active{% endif %}">
+                    <i class="ph ph-receipt"></i> Transactions
+                </a>
+                <a href="{{ url_for('analytics') }}" class="nav-item {% if active_tab == 'analytics' %}active{% endif %}">
+                    <i class="ph ph-chart-pie-slice"></i> Analytics
+                </a>
+                <a href="{{ url_for('goals') }}" class="nav-item {% if active_tab == 'goals' %}active{% endif %}">
+                    <i class="ph ph-target"></i> Goals & Budgets
+                </a>
+                <a href="{{ url_for('wealth') }}" class="nav-item {% if active_tab == 'wealth' %}active{% endif %}">
+                    <i class="ph ph-bank"></i> Net Worth
+                </a>
+                <a href="{{ url_for('assistant') }}" class="nav-item {% if active_tab == 'assistant' %}active{% endif %}">
+                    <i class="ph ph-sparkle"></i> AI Assistant
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Overlay for mobile/sidebar toggle -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content expanded" id="mainContent">
+            <div class="topbar">
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <button class="hamburger" id="toggleSidebar">
+                        <i class="ph ph-list"></i>
+                    </button>
+                    <h1 class="page-title">{% block title %}{% endblock %}</h1>
+                </div>
+                
+                <div class="user-profile">
+                    <div class="avatar">
+                        {{ data.profile.name[0] }}
+                    </div>
+                    <span style="font-weight: 500;">{{ data.profile.name }}</span>
+                </div>
+            </div>
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('closed');
+            
+            // If on desktop, expand/collapse main content
+            if (window.innerWidth > 1024) {
+                mainContent.classList.toggle('expanded');
+            } else {
+                // If on mobile, show/hide overlay
+                if(sidebar.classList.contains('closed')) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('show');
+                } else {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('show');
+                }
+            }
+        }
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('closed');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+        });
+
+        // Handle resize events
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                overlay.classList.remove('show');
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

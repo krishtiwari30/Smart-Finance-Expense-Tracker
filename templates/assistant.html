@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Assistant{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="max-width: 800px; margin: 0 auto; height: 75vh; display: flex; flex-direction: column;">
+    <div style="padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+        <div style="width: 50px; height: 50px; border-radius: 15px; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; box-shadow: 0 4px 15px var(--accent-glow);">
+            <i class="ph-fill ph-sparkle"></i>
+        </div>
+        <div>
+            <h2 style="font-size: 1.2rem; font-weight: 600;">SmartFi AI</h2>
+            <div style="color: var(--success); font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;">
+                <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success);"></div> Online
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <!-- Initial Bot Message -->
+            <div class="chat-bubble chat-bot">
+                Hello <b>{{ data.profile.name }}</b>! I am your SmartFi Assistant. You can ask me things like "What is my total spend?" or "How much did I spend on Food?".
+            </div>
+        </div>
+        
+        <form id="chatForm" style="margin-top: 1.5rem; display: flex; gap: 1rem; position: relative;">
+            <input type="text" id="chatInput" class="form-control" placeholder="Ask a question..." autocomplete="off" style="padding-right: 4rem; border-radius: 15px;">
+            <button type="submit" class="btn" style="position: absolute; right: 5px; top: 5px; bottom: 5px; border-radius: 10px; padding: 0 1rem; width: auto;">
+                <i class="ph-bold ph-paper-plane-right"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+
+    function addMessage(text, sender) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble chat-${sender}`;
+        bubble.innerHTML = text;
+        chatMessages.appendChild(bubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        // Add user message
+        addMessage(text, 'user');
+        chatInput.value = '';
+
+        // Add loading bubble
+        const loadingBubble = document.createElement('div');
+        loadingBubble.className = 'chat-bubble chat-bot';
+        loadingBubble.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Thinking...';
+        loadingBubble.id = 'loadingBubble';
+        chatMessages.appendChild(loadingBubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        try {
+            const res = await fetch('{{ url_for("api_chat") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: text })
+            });
+            const data = await res.json();
+            
+            // Remove loading
+            document.getElementById('loadingBubble').remove();
+            
+            // Add bot response
+            addMessage(data.response, 'bot');
+        } catch (err) {
+            document.getElementById('loadingBubble').remove();
+            addMessage("Sorry, I encountered an error. Please try again.", 'bot');
+        }
+    });
+</script>
+{% endblock %}

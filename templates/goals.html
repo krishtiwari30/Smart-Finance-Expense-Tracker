@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Goals & Budgets{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <!-- Goals List -->
+    <div class="glass-panel" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="ph ph-target text-accent"></i> Financial Goals
+            </h3>
+        </div>
+        
+        <div style="flex: 1; overflow-y: auto; max-height: 400px; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            {% for g in data.goals %}
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 1.5rem; border-radius: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div>
+                        <div style="font-weight: 500; font-size: 1.1rem;">{{ g.name }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);"><i class="ph ph-calendar-blank"></i> Target: {{ g.deadline }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.2rem; font-weight: 600; color: var(--accent);">{{ data.profile.currency }}{{ g.targetAmount | inr_format }}</div>
+                    </div>
+                </div>
+                
+                {% set pct = (g.currentAmount / g.targetAmount * 100) if g.targetAmount > 0 else 0 %}
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <span>Saved: {{ data.profile.currency }}{{ g.currentAmount | inr_format }}</span>
+                    <span>{{ pct | round }}%</span>
+                </div>
+                <div style="width: 100%; background: var(--bg-surface); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 1rem;">
+                    <div style="height: 100%; width: {{ pct }}%; background: linear-gradient(90deg, var(--accent), var(--accent-hover)); border-radius: 4px;"></div>
+                </div>
+                
+                <form method="POST" action="{{ url_for('goals') }}" style="display: flex; gap: 0.5rem;">
+                    <input type="hidden" name="action" value="update_goal">
+                    <input type="hidden" name="goal_id" value="{{ g.id }}">
+                    <input type="number" name="amount" class="form-control" style="padding: 0.5rem; height: auto;" value="{{ g.currentAmount }}" required>
+                    <button type="submit" class="btn" style="padding: 0.5rem 1rem;">Update</button>
+                </form>
+            </div>
+            {% else %}
+            <div style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">
+                <p>No goals set yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            <form method="POST" action="{{ url_for('goals') }}">
+                <input type="hidden" name="action" value="add_goal">
+                <div class="grid-2" style="gap: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" name="name" class="form-control" placeholder="Goal Name" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="number" name="targetAmount" class="form-control" placeholder="Target Amount" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="date" name="deadline" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn" style="justify-content: center;"><i class="ph ph-plus"></i> Add Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active Budgets -->
+    <div class="glass-panel" style="display: flex; flex-direction: column;">
+        <h3 style="font-weight: 500; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <i class="ph ph-wallet text-accent"></i> Monthly Category Budgets
+        </h3>
+        
+        <div style="flex: 1; overflow-y: auto; max-height: 400px; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            {% for cat, limit in data.budgets.items() %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border);">
+                <div style="font-weight: 500;">{{ cat }}</div>
+                <div style="font-weight: 600; font-family: 'Roboto Mono', monospace;">{{ data.profile.currency }}{{ limit | inr_format }} / month</div>
+            </div>
+            {% else %}
+            <div style="text-align: center; color: var(--text-secondary); margin-top: 2rem;">
+                <p>No budgets set yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            <form method="POST" action="{{ url_for('goals') }}">
+                <input type="hidden" name="action" value="set_budget">
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <input type="text" name="category" class="form-control" placeholder="Category" required list="categories">
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <input type="number" name="amount" class="form-control" placeholder="Limit" required>
+                    </div>
+                    <button type="submit" class="btn"><i class="ph ph-floppy-disk"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

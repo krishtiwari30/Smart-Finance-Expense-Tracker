@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="grid-3" style="margin-bottom: 2rem;">
+    <!-- Metric Card 1 -->
+    <div class="glass-panel">
+        <div class="text-muted" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+            <i class="ph ph-wallet"></i> Total Balance
+        </div>
+        <div class="metric-value text-accent">{{ data.profile.currency }}{{ metrics.savings | inr_format }}</div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);">
+            <span class="text-success"><i class="ph ph-trend-up"></i> {{ metrics.ratio | round(1) }}%</span> savings ratio
+        </div>
+    </div>
+
+    <!-- Metric Card 2 -->
+    <div class="glass-panel">
+        <div class="text-muted" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+            <i class="ph ph-arrow-down-right"></i> Monthly Expense
+        </div>
+        <div class="metric-value">{{ data.profile.currency }}{{ metrics.thisMonthExpense | inr_format }}</div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);">
+            Of total income {{ data.profile.currency }}{{ metrics.totalIncome | inr_format }}
+        </div>
+    </div>
+
+    <!-- Health Score -->
+    <div class="glass-panel" style="position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -20px; top: -20px; font-size: 150px; opacity: 0.05; color: var(--success);">
+            <i class="ph-fill ph-heartbeat"></i>
+        </div>
+        <div class="text-muted" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+            <i class="ph ph-activity"></i> Financial Health
+        </div>
+        <div class="metric-value {% if health.score >= 80 %}text-success{% elif health.score < 40 %}text-danger{% else %}text-warning{% endif %}">
+            {{ health.score }}<span style="font-size: 1rem; color: var(--text-secondary);">/100</span>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);">
+            Status: <strong style="color: white;">{{ health.label }}</strong>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <!-- Smart Alerts -->
+    <div class="glass-panel">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-bell-ringing text-accent"></i> Smart Alerts
+        </h3>
+        
+        {% if alerts %}
+            {% for alert in alerts %}
+            <div class="alert alert-{{ alert.type }}">
+                <i class="ph ph-warning-circle" style="font-size: 1.5rem;"></i>
+                <div>{{ alert.msg }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 2rem 0; color: var(--text-secondary);">
+                <i class="ph ph-check-circle" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>All good! No alerts at the moment.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Spending Breakdown Chart -->
+    <div class="glass-panel">
+        <h3 style="margin-bottom: 1.5rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="ph ph-chart-donut text-accent"></i> Spending Breakdown
+        </h3>
+        <div style="position: relative; height: 250px; width: 100%;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const categoryData = {{ metrics.categoryTotals | tojson | safe }};
+    const labels = Object.keys(categoryData);
+    const data = Object.values(categoryData);
+    
+    // Premium color palette for charts
+    const colors = [
+        '#6366f1', '#10b981', '#f59e0b', '#ef4444', 
+        '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+    ];
+
+    if (labels.length > 0) {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#a0a5b1',
+                            font: {
+                                family: "'Outfit', sans-serif"
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('categoryChart').parentElement.innerHTML = 
+            '<div style="text-align: center; color: var(--text-secondary); padding-top: 3rem;">No data available yet.</div>';
+    }
+</script>
+{% endblock %}
