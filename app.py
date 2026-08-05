@@ -118,6 +118,13 @@ def transactions():
         
     return render_template('transactions.html', active_tab='transactions', data=data)
 
+@app.route('/delete_transaction/<id>', methods=['POST'])
+def delete_transaction(id):
+    data = load_data()
+    data['transactions'] = [t for t in data['transactions'] if t.get('id') != id]
+    save_data(data)
+    return redirect(url_for('transactions'))
+
 @app.route('/analytics')
 def analytics():
     data = load_data()

@@ -83,8 +83,15 @@
                         <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ t.category }} • {{ t.date }}</div>
                     </div>
                 </div>
-                <div style="font-weight: 600; font-family: 'Roboto Mono', monospace; color: {% if t.type == 'income' %}var(--success){% else %}white{% endif %};">
-                    {% if t.type == 'income' %}+{% else %}-{% endif %}{{ data.profile.currency }}{{ t.amount | inr_format }}
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-weight: 600; font-family: 'Roboto Mono', monospace; color: {% if t.type == 'income' %}var(--success){% else %}white{% endif %};">
+                        {% if t.type == 'income' %}+{% else %}-{% endif %}{{ data.profile.currency }}{{ t.amount | inr_format }}
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_transaction', id=t.id) }}" style="margin: 0;">
+                        <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 0.25rem; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='none'" title="Delete transaction">
+                            <i class="ph ph-trash" style="font-size: 1.2rem;"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
             {% else %}
